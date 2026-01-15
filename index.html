@@ -641,7 +641,7 @@
                 // Auto-skip to next question after 1.5 seconds
                 autoSkipTimer = setTimeout(() => {
                     nextQuestion();
-                }, 1500);
+                }, 500);
             } else {
                 btn.classList.add('wrong');
                 // Highlight correct answer
@@ -661,7 +661,7 @@
                     currentIndex = 0;
                     score = 0;
                     loadQuestion();
-                }, 1000);
+                }, 500);
             }
         }
 
@@ -695,3 +695,4 @@
 </body>
 
 </html>
+
