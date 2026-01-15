@@ -641,7 +641,7 @@
                 // Auto-skip to next question after 1.5 seconds
                 autoSkipTimer = setTimeout(() => {
                     nextQuestion();
-                }, 300);
+                }, 1500);
             } else {
                 btn.classList.add('wrong');
                 // Highlight correct answer
@@ -653,9 +653,8 @@
                     }
                 });
 
-                // Show restart message and reset after 2 seconds
-                setTimeout(() => {
-                    alert('❌ Sai rồi! Bắt đầu lại từ đầu...');
+                // Auto-reset after 1 second without alert
+                autoSkipTimer = setTimeout(() => {
                     // Re-shuffle questions for variety each restart
                     currentQuestions.sort(() => Math.random() - 0.5);
                     // Reset to beginning
