@@ -475,6 +475,7 @@
         let isVnToJp = true;
         let isAnswered = false;
         let correctAnswer = null;
+        let autoSkipTimer = null;
 
         // --- DOM ---
         const screenTopics = document.getElementById('screen-topics');
@@ -564,6 +565,12 @@
         }
 
         function loadQuestion() {
+            // Clear any pending auto-skip timer
+            if (autoSkipTimer) {
+                clearTimeout(autoSkipTimer);
+                autoSkipTimer = null;
+            }
+
             // Reset UI for new question
             isAnswered = false;
             btnNext.style.display = 'none';
@@ -632,9 +639,9 @@
                 btnNext.style.display = 'block';
 
                 // Auto-skip to next question after 1.5 seconds
-                setTimeout(() => {
+                autoSkipTimer = setTimeout(() => {
                     nextQuestion();
-                }, 500);
+                }, 300);
             } else {
                 btn.classList.add('wrong');
                 // Highlight correct answer
@@ -689,5 +696,3 @@
 </body>
 
 </html>
-
-
