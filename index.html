@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App Học Từ Vựng Tiếng Nhật</title>
+    <style>
+        /* CSS Clean & Modern */
+        :root {
+            --primary-color: #4a90e2;
+            --success-color: #2ecc71;
+            --error-color: #e74c3c;
+            --bg-color: #f5f7fa;
+            --card-bg: #ffffff;
+            --text-color: #2c3e50;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Roboto', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background: var(--card-bg);
+            width: 90%;
+            max-width: 500px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        h1,
+        h2 {
+            margin: 0 0 1rem 0;
+            color: #34495e;
+        }
+
+        /* Screens */
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Buttons */
+        .btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.1s, box-shadow 0.2s;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background-color: #95a5a6;
+        }
+
+        .btn-topic {
+            width: 100%;
+            margin-bottom: 10px;
+            text-align: left;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn-topic:hover {
+            background-color: #357abd;
+        }
+
+        /* Quiz UI */
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+            color: #7f8c8d;
+            font-weight: 500;
+        }
+
+        .question-box {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin: 30px 0;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .option-btn {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            color: var(--text-color);
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .option-btn:hover {
+            border-color: var(--primary-color);
+            background: #eef4fb;
+        }
+
+        .option-btn.correct {
+            background-color: var(--success-color) !important;
+            color: white !important;
+            border-color: var(--success-color) !important;
+        }
+
+        .option-btn.wrong {
+            background-color: var(--error-color) !important;
+            color: white !important;
+            border-color: var(--error-color) !important;
+        }
+
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        /* Result Screen */
+        .score-big {
+            font-size: 4rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin: 20px 0;
+        }
+
+        .score-text {
+            font-size: 1.2rem;
+            color: #7f8c8d;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <!-- SCREEN 1: TOPIC SELECTION -->
+        <div id="screen-topics" class="screen active">
+            <h2>Chọn Chủ Đề</h2>
+            <div style="margin-bottom: 20px;">
+                <label style="margin-right: 15px;">
+                    <input type="radio" name="lang-mode" value="vn_jp" checked> Việt → Nhật
+                </label>
+                <label>
+                    <input type="radio" name="lang-mode" value="jp_vn"> Nhật → Việt
+                </label>
+            </div>
+            <div id="topics-list">
+                <!-- Topics will be inserted here -->
+            </div>
+        </div>
+
+        <!-- SCREEN 2: QUIZ -->
+        <div id="screen-quiz" class="screen">
+            <div class="stats">
+                <span id="score-display">Điểm: 0</span>
+                <span id="progress-display">Câu: 1/10</span>
+            </div>
+
+            <div class="question-box" id="question-text">
+                Loading...
+            </div>
+
+            <div class="options-grid" id="options-container">
+                <!-- Options -->
+            </div>
+
+            <div class="controls">
+                <button id="btn-home" class="btn btn-secondary" onclick="showTopics()">🏠 Home</button>
+                <button id="btn-next" class="btn" onclick="nextQuestion()" style="display: none;">Câu tiếp ➡</button>
+            </div>
+        </div>
+
+        <!-- SCREEN 3: RESULTS -->
+        <div id="screen-result" class="screen">
+            <h2>Kết Thúc!</h2>
+            <div class="score-text">Số điểm của bạn</div>
+            <div class="score-big" id="final-score">0</div>
+            <p id="final-msg">Làm tốt lắm!</p>
+            <button class="btn" onclick="showTopics()">Chơi lại</button>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA ---
+        const rawData = [
+    // --- BÀI 1 (1-A: Di chuyển, 1-B: Ngày lễ & Thời gian) ---
+    { "id": "v101", "kanji": "いきます", "hiragana": "いきます", "meaning": "đi", "lesson": 1 },
+    { "id": "v102", "kanji": "きます", "hiragana": "きます", "meaning": "đến", "lesson": 1 },
+    { "id": "v103", "kanji": "かえります", "hiragana": "かえります", "meaning": "trở về", "lesson": 1 },
+    { "id": "v104", "kanji": "ひこうき", "hiragana": "ひこうき", "meaning": "máy bay", "lesson": 1 },
+    { "id": "v105", "kanji": "タクシー", "hiragana": "タクシー", "meaning": "xe taxi", "lesson": 1 },
+    { "id": "v106", "kanji": "バス", "hiragana": "バス", "meaning": "xe buýt", "lesson": 1 },
+    { "id": "v107", "kanji": "じてんしゃ", "hiragana": "じてんしゃ", "meaning": "xe đạp", "lesson": 1 },
+    { "id": "v108", "kanji": "あるいて", "hiragana": "あるいて", "meaning": "đi bộ", "lesson": 1 },
+    { "id": "v109", "kanji": "バイク", "hiragana": "バイク", "meaning": "xe máy", "lesson": 1 },
+    { "id": "v110", "kanji": "ともだち", "hiragana": "ともだち", "meaning": "bạn bè", "lesson": 1 },
+    { "id": "v111", "kanji": "こいびと", "hiragana": "こいびと", "meaning": "người yêu", "lesson": 1 },
+    { "id": "v112", "kanji": "かぞく", "hiragana": "かぞく", "meaning": "gia đình", "lesson": 1 },
+    { "id": "v113", "kanji": "ひとりで", "hiragana": "ひとりで", "meaning": "một mình", "lesson": 1 },
+    { "id": "v114", "kanji": "たんじょうび", "hiragana": "たんじょうび", "meaning": "sinh nhật", "lesson": 1 },
+    { "id": "v115", "kanji": "こどものひ", "hiragana": "こどものひ", "meaning": "tết thiếu nhi", "lesson": 1 },
+    { "id": "v116", "kanji": "せんせいのひ", "hiragana": "せんせいのひ", "meaning": "ngày nhà giáo", "lesson": 1 },
+    { "id": "v117", "kanji": "クリスマス", "hiragana": "クリスマス", "meaning": "giáng sinh (Noel)", "lesson": 1 },
+    { "id": "v118", "kanji": "じょせいのひ", "hiragana": "じょせいのひ", "meaning": "ngày phụ nữ", "lesson": 1 },
+    { "id": "v119", "kanji": "バレンタインデー", "hiragana": "バレンタインデー", "meaning": "ngày Valentine", "lesson": 1 },
+    { "id": "v120", "kanji": "なんがつ", "hiragana": "なんがつ", "meaning": "tháng mấy", "lesson": 1 },
+    { "id": "v121", "kanji": "なんにち", "hiragana": "なんにち", "meaning": "ngày mấy", "lesson": 1 },
+    { "id": "v122", "kanji": "いつ", "hiragana": "いつ", "meaning": "khi nào", "lesson": 1 },
+
+    // --- BÀI 2 (2-A: Ăn uống, 2-B: Hoạt động giải trí) ---
+    { "id": "v201", "kanji": "たべます", "hiragana": "たべます", "meaning": "ăn", "lesson": 2 },
+    { "id": "v202", "kanji": "のみます", "hiragana": "のみます", "meaning": "uống", "lesson": 2 },
+    { "id": "v203", "kanji": "みます", "hiragana": "みます", "meaning": "xem", "lesson": 2 },
+    { "id": "v204", "kanji": "よみます", "hiragana": "よみます", "meaning": "đọc", "lesson": 2 },
+    { "id": "v205", "kanji": "かきます", "hiragana": "かきます", "meaning": "viết", "lesson": 2 },
+    { "id": "v206", "kanji": "かいます", "hiragana": "かいます", "meaning": "mua", "lesson": 2 },
+    { "id": "v207", "kanji": "ごはん", "hiragana": "ごはん", "meaning": "cơm", "lesson": 2 },
+    { "id": "v208", "kanji": "パン", "hiragana": "パン", "meaning": "bánh mì", "lesson": 2 },
+    { "id": "v209", "kanji": "にく", "hiragana": "にく", "meaning": "thịt", "lesson": 2 },
+    { "id": "v210", "kanji": "さかな", "hiragana": "さかな", "meaning": "cá", "lesson": 2 },
+    { "id": "v211", "kanji": "みず", "hiragana": "みず", "meaning": "nước", "lesson": 2 },
+    { "id": "v212", "kanji": "おちゃ", "hiragana": "おちゃ", "meaning": "trà", "lesson": 2 },
+    { "id": "v213", "kanji": "ミルク", "hiragana": "ミルク", "meaning": "sữa", "lesson": 2 },
+    { "id": "v214", "kanji": "ビール", "hiragana": "ビール", "meaning": "bia", "lesson": 2 },
+    { "id": "v215", "kanji": "えいが", "hiragana": "えいが", "meaning": "phim", "lesson": 2 },
+    { "id": "v216", "kanji": "てがみ", "hiragana": "てがみ", "meaning": "thư", "lesson": 2 },
+    { "id": "v217", "kanji": "なに", "hiragana": "なに", "meaning": "cái gì", "lesson": 2 },
+    { "id": "v218", "kanji": "あいます", "hiragana": "あいます", "meaning": "gặp (bạn)", "lesson": 2 },
+    { "id": "v219", "kanji": "すいます", "hiragana": "すいます", "meaning": "hút (thuốc)", "lesson": 2 },
+    { "id": "v220", "kanji": "します", "hiragana": "します", "meaning": "làm / chơi (thể thao)", "lesson": 2 },
+    { "id": "v221", "kanji": "レストラン", "hiragana": "レストラン", "meaning": "nhà hàng", "lesson": 2 },
+    { "id": "v222", "kanji": "えいがかん", "hiragana": "えいがかん", "meaning": "rạp chiếu phim", "lesson": 2 },
+    { "id": "v223", "kanji": "おさけ", "hiragana": "おさけ", "meaning": "rượu", "lesson": 2 },
+    { "id": "v224", "kanji": "たばこ", "hiragana": "たばこ", "meaning": "thuốc lá", "lesson": 2 },
+    { "id": "v225", "kanji": "コーヒー", "hiragana": "コーヒー", "meaning": "cà phê", "lesson": 2 },
+    { "id": "v226", "kanji": "チョコレート", "hiragana": "チョコレート", "meaning": "sô cô la", "lesson": 2 },
+    { "id": "v227", "kanji": "アイスクリーム", "hiragana": "アイスクリーム", "meaning": "kem", "lesson": 2 },
+    { "id": "v228", "kanji": "にっき", "hiragana": "にっき", "meaning": "nhật ký", "lesson": 2 },
+    { "id": "v229", "kanji": "カラオケ", "hiragana": "カラオケ", "meaning": "hát karaoke", "lesson": 2 },
+    { "id": "v230", "kanji": "サッカー", "hiragana": "サッカー", "meaning": "bóng đá", "lesson": 2 },
+    { "id": "v231", "kanji": "しゅくだい", "hiragana": "しゅくだい", "meaning": "bài tập", "lesson": 2 },
+    { "id": "v232", "kanji": "おはなみ", "hiragana": "おはなみ", "meaning": "ngắm hoa anh đào", "lesson": 2 },
+    { "id": "v233", "kanji": "それから", "hiragana": "それから", "meaning": "sau đó", "lesson": 2 },
+    { "id": "v234", "kanji": "いっしょに", "hiragana": "いっしょに", "meaning": "cùng nhau", "lesson": 2 },
+
+    // --- BÀI 3 (3-A: Công cụ, 3-B: Cho nhận) ---
+    { "id": "v301", "kanji": "おくります", "hiragana": "おくります", "meaning": "gửi", "lesson": 3 },
+    { "id": "v302", "kanji": "きります", "hiragana": "きります", "meaning": "cắt, thái", "lesson": 3 },
+    { "id": "v303", "kanji": "て", "hiragana": "て", "meaning": "tay", "lesson": 3 },
+    { "id": "v304", "kanji": "はし", "hiragana": "はし", "meaning": "đũa", "lesson": 3 },
+    { "id": "v305", "kanji": "ナイフ", "hiragana": "ナイフ", "meaning": "dao", "lesson": 3 },
+    { "id": "v306", "kanji": "フォーク", "hiragana": "フォーク", "meaning": "dĩa", "lesson": 3 },
+    { "id": "v307", "kanji": "はさみ", "hiragana": "はさみ", "meaning": "kéo", "lesson": 3 },
+    { "id": "v308", "kanji": "ファクス", "hiragana": "ファクス", "meaning": "máy fax", "lesson": 3 },
+    { "id": "v309", "kanji": "けしゴム", "hiragana": "けしゴム", "meaning": "cục tẩy", "lesson": 3 },
+    { "id": "v310", "kanji": "はな", "hiragana": "はな", "meaning": "hoa", "lesson": 3 },
+    { "id": "v311", "kanji": "レポート", "hiragana": "レポート", "meaning": "báo cáo", "lesson": 3 },
+    { "id": "v312", "kanji": "けいたいでんわ", "hiragana": "けいたいでんわ", "meaning": "điện thoại di động", "lesson": 3 },
+    { "id": "v313", "kanji": "あげます", "hiragana": "あげます", "meaning": "tặng", "lesson": 3 },
+    { "id": "v314", "kanji": "もらいます", "hiragana": "もらいます", "meaning": "nhận", "lesson": 3 },
+    { "id": "v315", "kanji": "かします", "hiragana": "かします", "meaning": "cho mượn", "lesson": 3 },
+    { "id": "v316", "kanji": "かります", "hiragana": "かります", "meaning": "mượn", "lesson": 3 },
+    { "id": "v317", "kanji": "おしえます", "hiragana": "おしえます", "meaning": "dạy", "lesson": 3 },
+    { "id": "v318", "kanji": "ならいます", "hiragana": "ならいます", "meaning": "học", "lesson": 3 },
+    { "id": "v319", "kanji": "かけます", "hiragana": "かけます", "meaning": "gọi (điện thoại)", "lesson": 3 },
+    { "id": "v320", "kanji": "プレゼント", "hiragana": "プレゼント", "meaning": "quà tặng", "lesson": 3 },
+    { "id": "v321", "kanji": "はがき", "hiragana": "はがき", "meaning": "bưu thiếp", "lesson": 3 },
+    { "id": "v322", "kanji": "シャツ", "hiragana": "シャツ", "meaning": "áo sơ mi", "lesson": 3 },
+    { "id": "v323", "kanji": "さいふ", "hiragana": "さいふ", "meaning": "cái ví", "lesson": 3 },
+    { "id": "v324", "kanji": "おかね", "hiragana": "おかね", "meaning": "tiền", "lesson": 3 },
+    { "id": "v325", "kanji": "にもつ", "hiragana": "にもつ", "meaning": "hành lý", "lesson": 3 },
+    { "id": "v326", "kanji": "チケット", "hiragana": "チケット", "meaning": "vé", "lesson": 3 },
+    { "id": "v327", "kanji": "りょうしん", "hiragana": "りょうしん", "meaning": "bố mẹ", "lesson": 3 },
+
+    // --- BÀI 4 (4-A: Tính từ i, 4-B: Tính từ na, 4-C: Sở thích) ---
+    { "id": "v401", "kanji": "いい", "hiragana": "いい", "meaning": "tốt", "lesson": 4 },
+    { "id": "v402", "kanji": "むずかしい", "hiragana": "むずかしい", "meaning": "khó", "lesson": 4 },
+    { "id": "v403", "kanji": "やさしい", "hiragana": "やさしい", "meaning": "dễ", "lesson": 4 },
+    { "id": "v404", "kanji": "たかい", "hiragana": "たかい", "meaning": "đắt / cao", "lesson": 4 },
+    { "id": "v405", "kanji": "やすい", "hiragana": "やすい", "meaning": "rẻ", "lesson": 4 },
+    { "id": "v406", "kanji": "おおきい", "hiragana": "おおきい", "meaning": "to / lớn", "lesson": 4 },
+    { "id": "v407", "kanji": "ちいさい", "hiragana": "ちいさい", "meaning": "nhỏ", "lesson": 4 },
+    { "id": "v408", "kanji": "いそがしい", "hiragana": "いそがしい", "meaning": "bận rộn", "lesson": 4 },
+    { "id": "v409", "kanji": "たのしい", "hiragana": "たのしい", "meaning": "vui vẻ", "lesson": 4 },
+    { "id": "v410", "kanji": "おもしろい", "hiragana": "おもしろい", "meaning": "thú vị", "lesson": 4 },
+    { "id": "v411", "kanji": "おいしい", "hiragana": "おいしい", "meaning": "ngon", "lesson": 4 },
+    { "id": "v412", "kanji": "もの", "hiragana": "もの", "meaning": "đồ vật", "lesson": 4 },
+    { "id": "v413", "kanji": "たべもの", "hiragana": "たべもの", "meaning": "đồ ăn", "lesson": 4 },
+    { "id": "v414", "kanji": "べんきょう", "hiragana": "べんきょう", "meaning": "việc học", "lesson": 4 },
+    { "id": "v415", "kanji": "くるま", "hiragana": "くるま", "meaning": "ô tô", "lesson": 4 },
+    { "id": "v416", "kanji": "とても", "hiragana": "とても", "meaning": "rất", "lesson": 4 },
+    { "id": "v417", "kanji": "あまり", "hiragana": "あまり", "meaning": "không... mấy", "lesson": 4 },
+    { "id": "v418", "kanji": "ハンサム", "hiragana": "ハンサム", "meaning": "đẹp trai", "lesson": 4 },
+    { "id": "v419", "kanji": "きれい", "hiragana": "きれい", "meaning": "đẹp / sạch", "lesson": 4 },
+    { "id": "v420", "kanji": "しずか", "hiragana": "しずか", "meaning": "yên tĩnh", "lesson": 4 },
+    { "id": "v421", "kanji": "にぎやか", "hiragana": "にぎやか", "meaning": "náo nhiệt", "lesson": 4 },
+    { "id": "v422", "kanji": "ゆうめい", "hiragana": "ゆうめい", "meaning": "nổi tiếng", "lesson": 4 },
+    { "id": "v423", "kanji": "しんせつ", "hiragana": "しんせつ", "meaning": "thân thiện / tốt bụng", "lesson": 4 },
+    { "id": "v424", "kanji": "げんき", "hiragana": "げんき", "meaning": "khỏe mạnh", "lesson": 4 },
+    { "id": "v425", "kanji": "ひま", "hiragana": "ひま", "meaning": "rảnh rỗi", "lesson": 4 },
+    { "id": "v426", "kanji": "べんり", "hiragana": "べんり", "meaning": "tiện lợi", "lesson": 4 },
+    { "id": "v427", "kanji": "さくら", "hiragana": "さくら", "meaning": "hoa anh đào", "lesson": 4 },
+    { "id": "v428", "kanji": "バラ", "hiragana": "バラ", "meaning": "hoa hồng", "lesson": 4 },
+    { "id": "v429", "kanji": "はす", "hiragana": "はす", "meaning": "hoa sen", "lesson": 4 },
+    { "id": "v430", "kanji": "ひと", "hiragana": "ひと", "meaning": "người", "lesson": 4 },
+    { "id": "v431", "kanji": "まち", "hiragana": "まち", "meaning": "thành phố", "lesson": 4 },
+    { "id": "v432", "kanji": "ところ", "hiragana": "ところ", "meaning": "nơi chốn", "lesson": 4 },
+    { "id": "v433", "kanji": "どう", "hiragana": "どう", "meaning": "thế nào", "lesson": 4 },
+    { "id": "v434", "kanji": "どんな", "hiragana": "どんな", "meaning": "như thế nào", "lesson": 4 },
+    { "id": "v435", "kanji": "すき", "hiragana": "すき", "meaning": "thích", "lesson": 4 },
+    { "id": "v436", "kanji": "きらい", "hiragana": "きらい", "meaning": "ghét", "lesson": 4 },
+    { "id": "v437", "kanji": "じょうず", "hiragana": "じょうず", "meaning": "giỏi", "lesson": 4 },
+    { "id": "v438", "kanji": "へた", "hiragana": "へた", "meaning": "kém", "lesson": 4 },
+    { "id": "v439", "kanji": "りょうり", "hiragana": "りょうり", "meaning": "việc nấu ăn / món ăn", "lesson": 4 },
+    { "id": "v440", "kanji": "のみもの", "hiragana": "のみもの", "meaning": "đồ uống", "lesson": 4 },
+    { "id": "v441", "kanji": "スポーツ", "hiragana": "スポーツ", "meaning": "thể thao", "lesson": 4 },
+    { "id": "v442", "kanji": "テニス", "hiragana": "テニス", "meaning": "tennis", "lesson": 4 },
+    { "id": "v443", "kanji": "ダンス", "hiragana": "ダンス", "meaning": "khiêu vũ / nhảy", "lesson": 4 },
+    { "id": "v444", "kanji": "ペット", "hiragana": "ペット", "meaning": "vật nuôi", "lesson": 4 },
+    { "id": "v445", "kanji": "いぬ", "hiragana": "いぬ", "meaning": "con chó", "lesson": 4 },
+    { "id": "v446", "kanji": "ねこ", "hiragana": "ねこ", "meaning": "con mèo", "lesson": 4 },
+    { "id": "v447", "kanji": "うた", "hiragana": "うた", "meaning": "bài hát", "lesson": 4 },
+    { "id": "v448", "kanji": "え", "hiragana": "え", "meaning": "bức tranh", "lesson": 4 },
+    { "id": "v449", "kanji": "じ", "hiragana": "じ", "meaning": "chữ", "lesson": 4 },
+
+    // --- BÀI 5 (5-A: Vị trí & Tồn tại, 5-B: Sở hữu) ---
+    { "id": "v501", "kanji": "います", "hiragana": "います", "meaning": "có (người/vật sống)", "lesson": 5 },
+    { "id": "v502", "kanji": "あります", "hiragana": "あります", "meaning": "có (đồ vật)", "lesson": 5 },
+    { "id": "v503", "kanji": "おんなのこ", "hiragana": "おんなのこ", "meaning": "bé gái", "lesson": 5 },
+    { "id": "v504", "kanji": "おとこのこ", "hiragana": "おとこのこ", "meaning": "bé trai", "lesson": 5 },
+    { "id": "v505", "kanji": "き", "hiragana": "き", "meaning": "cái cây", "lesson": 5 },
+    { "id": "v506", "kanji": "こうえん", "hiragana": "こうえん", "meaning": "công viên", "lesson": 5 },
+    { "id": "v507", "kanji": "いけ", "hiragana": "いけ", "meaning": "cái ao", "lesson": 5 },
+    { "id": "v508", "kanji": "うえ", "hiragana": "うえ", "meaning": "trên", "lesson": 5 },
+    { "id": "v509", "kanji": "した", "hiragana": "した", "meaning": "dưới", "lesson": 5 },
+    { "id": "v510", "kanji": "まえ", "hiragana": "まえ", "meaning": "trước", "lesson": 5 },
+    { "id": "v511", "kanji": "うしろ", "hiragana": "うしろ", "meaning": "sau", "lesson": 5 },
+    { "id": "v512", "kanji": "なか", "hiragana": "なか", "meaning": "trong", "lesson": 5 },
+    { "id": "v513", "kanji": "そと", "hiragana": "そと", "meaning": "ngoài", "lesson": 5 },
+    { "id": "v514", "kanji": "となり", "hiragana": "となり", "meaning": "bên cạnh", "lesson": 5 },
+    { "id": "v515", "kanji": "ちかく", "hiragana": "ちかく", "meaning": "gần", "lesson": 5 },
+    { "id": "v516", "kanji": "や", "hiragana": "や", "meaning": "...và... (liệt kê)", "lesson": 5 },
+    { "id": "v517", "kanji": "あります", "hiragana": "あります", "meaning": "có (sở hữu)", "lesson": 5 },
+    { "id": "v518", "kanji": "はこ", "hiragana": "はこ", "meaning": "cái hộp", "lesson": 5 },
+    { "id": "v519", "kanji": "れいぞうこ", "hiragana": "れいぞうこ", "meaning": "tủ lạnh", "lesson": 5 },
+    { "id": "v520", "kanji": "ほんや", "hiragana": "ほんや", "meaning": "hiệu sách", "lesson": 5 },
+    { "id": "v521", "kanji": "カレンダー", "hiragana": "カレンダー", "meaning": "lịch", "lesson": 5 },
+    { "id": "v522", "kanji": "しゃしん", "hiragana": "しゃしん", "meaning": "bức ảnh", "lesson": 5 },
+    { "id": "v523", "kanji": "ベッド", "hiragana": "ベッド", "meaning": "cái giường", "lesson": 5 },
+    { "id": "v524", "kanji": "じかん", "hiragana": "じかん", "meaning": "thời gian", "lesson": 5 },
+    { "id": "v525", "kanji": "ようじ", "hiragana": "ようじ", "meaning": "việc bận", "lesson": 5 },
+    { "id": "v526", "kanji": "やくそく", "hiragana": "やくそく", "meaning": "lời hứa", "lesson": 5 },
+    { "id": "v527", "kanji": "たくさん", "hiragana": "たくさん", "meaning": "nhiều", "lesson": 5 },
+    { "id": "v528", "kanji": "はやく", "hiragana": "はやく", "meaning": "sớm / nhanh", "lesson": 5 },
+    { "id": "v529", "kanji": "どうして", "hiragana": "どうして", "meaning": "tại sao", "lesson": 5 },
+    { "id": "v530", "kanji": "から", "hiragana": "から", "meaning": "bởi vì", "lesson": 5 },
+
+    // --- BÀI 6 (Thời tiết & So sánh) ---
+    { "id": "v601", "kanji": "あつい", "hiragana": "あつい", "meaning": "nóng (thời tiết)", "lesson": 6 },
+    { "id": "v602", "kanji": "さむい", "hiragana": "さむい", "meaning": "lạnh (thời tiết)", "lesson": 6 },
+    { "id": "v603", "kanji": "あたたかい", "hiragana": "あたたかい", "meaning": "ấm áp", "lesson": 6 },
+    { "id": "v604", "kanji": "すずしい", "hiragana": "すずしい", "meaning": "mát mẻ", "lesson": 6 },
+    { "id": "v605", "kanji": "おおい", "hiragana": "おおい", "meaning": "đông / nhiều", "lesson": 6 },
+    { "id": "v606", "kanji": "きせつ", "hiragana": "きせつ", "meaning": "mùa", "lesson": 6 },
+    { "id": "v607", "kanji": "はる", "hiragana": "はる", "meaning": "mùa xuân", "lesson": 6 },
+    { "id": "v608", "kanji": "なつ", "hiragana": "なつ", "meaning": "mùa hạ", "lesson": 6 },
+    { "id": "v609", "kanji": "あき", "hiragana": "あき", "meaning": "mùa thu", "lesson": 6 },
+    { "id": "v610", "kanji": "ふゆ", "hiragana": "ふゆ", "meaning": "mùa đông", "lesson": 6 },
+    { "id": "v611", "kanji": "せかい", "hiragana": "せかい", "meaning": "thế giới", "lesson": 6 },
+    { "id": "v612", "kanji": "ちち", "hiragana": "ちち", "meaning": "bố (mình)", "lesson": 6 },
+    { "id": "v613", "kanji": "おとうさん", "hiragana": "おとうさん", "meaning": "bố (người khác)", "lesson": 6 },
+    { "id": "v614", "kanji": "はは", "hiragana": "はは", "meaning": "mẹ (mình)", "lesson": 6 },
+    { "id": "v615", "kanji": "おかあさん", "hiragana": "おかあさん", "meaning": "mẹ (người khác)", "lesson": 6 },
+    { "id": "v616", "kanji": "どちら", "hiragana": "どちら", "meaning": "bên nào / phía nào", "lesson": 6 },
+    { "id": "v617", "kanji": "ほう", "hiragana": "ほう", "meaning": "phía (so sánh)", "lesson": 6 },
+    { "id": "v618", "kanji": "いちばん", "hiragana": "いちばん", "meaning": "nhất", "lesson": 6 },
+
+    // --- BÀI 7 (Mong muốn & Nghề nghiệp) ---
+    { "id": "v701", "kanji": "およぎます", "hiragana": "およぎます", "meaning": "bơi", "lesson": 7 },
+    { "id": "v702", "kanji": "けっこんします", "hiragana": "けっこんします", "meaning": "kết hôn", "lesson": 7 },
+    { "id": "v703", "kanji": "りょこうします", "hiragana": "りょこうします", "meaning": "du lịch", "lesson": 7 },
+    { "id": "v704", "kanji": "やすみます", "hiragana": "やすみます", "meaning": "nghỉ ngơi", "lesson": 7 },
+    { "id": "v705", "kanji": "なります", "hiragana": "なります", "meaning": "trở nên / trở thành", "lesson": 7 },
+    { "id": "v706", "kanji": "ほしい", "hiragana": "ほしい", "meaning": "muốn (có)", "lesson": 7 },
+    { "id": "v707", "kanji": "つめたい", "hiragana": "つめたい", "meaning": "lạnh (cảm giác)", "lesson": 7 },
+    { "id": "v708", "kanji": "あたらしい", "hiragana": "あたらしい", "meaning": "mới", "lesson": 7 },
+    { "id": "v709", "kanji": "プール", "hiragana": "プール", "meaning": "bể bơi", "lesson": 7 },
+    { "id": "v710", "kanji": "かわ", "hiragana": "かわ", "meaning": "sông", "lesson": 7 },
+    { "id": "v711", "kanji": "うみ", "hiragana": "うみ", "meaning": "biển", "lesson": 7 },
+    { "id": "v712", "kanji": "だいとうりょう", "hiragana": "だいとうりょう", "meaning": "tổng thống", "lesson": 7 },
+    { "id": "v713", "kanji": "かしゅ", "hiragana": "かしゅ", "meaning": "ca sĩ", "lesson": 7 },
+    { "id": "v714", "kanji": "モデル", "hiragana": "モデル", "meaning": "người mẫu", "lesson": 7 },
+    { "id": "v715", "kanji": "しゃちょう", "hiragana": "しゃちょう", "meaning": "giám đốc", "lesson": 7 },
+
+    // --- BÀI 8 (Mục đích đi lại) ---
+    { "id": "v801", "kanji": "あそびます", "hiragana": "あそびます", "meaning": "chơi", "lesson": 8 },
+    { "id": "v802", "kanji": "むかえます", "hiragana": "むかえます", "meaning": "đón", "lesson": 8 },
+    { "id": "v803", "kanji": "다します", "hiragana": "だします", "meaning": "gửi (thư)", "lesson": 8 },
+    { "id": "v804", "kanji": "さんぽします", "hiragana": "さんぽします", "meaning": "đi dạo", "lesson": 8 },
+    { "id": "v805", "kanji": "しょくじします", "hiragana": "しょくじします", "meaning": "dùng bữa", "lesson": 8 },
+    { "id": "v806", "kanji": "かいものします", "hiragana": "かいものします", "meaning": "mua sắm", "lesson": 8 },
+    { "id": "v807", "kanji": "つり", "hiragana": "つり", "meaning": "câu cá", "lesson": 8 },
+    { "id": "v808", "kanji": "スキー", "hiragana": "スキー", "meaning": "trượt tuyết", "lesson": 8 },
+    { "id": "v809", "kanji": "こども", "hiragana": "こども", "meaning": "trẻ con", "lesson": 8 },
+    { "id": "v810", "kanji": "びじゅつ", "hiragana": "びじゅつ", "meaning": "mỹ thuật", "lesson": 8 },
+    { "id": "v811", "kanji": "けいざい", "hiragana": "けいざい", "meaning": "kinh tế", "lesson": 8 },
+    { "id": "v812", "kanji": "えき", "hiragana": "えき", "meaning": "nhà ga", "lesson": 8 }
+];
+
+        const vocabulary = rawData.map(item => ({
+            id: parseInt(item.id.replace('v', '')),
+            jp: item.kanji || item.hiragana,
+            vn: item.meaning,
+            lesson: item.lesson,
+            romaji: ""
+        }));
+
+        // --- STATE ---
+        let currentQuestions = [];
+        let currentIndex = 0;
+        let score = 0;
+        let isVnToJp = true;
+        let isAnswered = false;
+        let correctAnswer = null;
+
+        // --- DOM ---
+        const screenTopics = document.getElementById('screen-topics');
+        const screenQuiz = document.getElementById('screen-quiz');
+        const screenResult = document.getElementById('screen-result');
+        const topicsList = document.getElementById('topics-list');
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const btnNext = document.getElementById('btn-next');
+        const scoreDisplay = document.getElementById('score-display');
+        const progressDisplay = document.getElementById('progress-display');
+        const finalScore = document.getElementById('final-score');
+        const finalMsg = document.getElementById('final-msg');
+
+        // --- INIT ---
+        function init() {
+            renderTopics();
+            showTopics();
+        }
+
+        function renderTopics() {
+            topicsList.innerHTML = '';
+
+            // Find unique lessons
+            const lessons = [...new Set(vocabulary.map(item => item.lesson))].sort((a, b) => a - b);
+
+            // "All Topics" button
+            const btnAll = document.createElement('button');
+            btnAll.className = 'btn btn-topic';
+            btnAll.innerHTML = `<span>📚 Tất cả chủ đề</span> <span>${vocabulary.length} từ</span>`;
+            btnAll.onclick = () => startQuiz('all');
+            topicsList.appendChild(btnAll);
+
+            // Lesson buttons
+            lessons.forEach(lesson => {
+                const count = vocabulary.filter(i => i.lesson === lesson).length;
+                const btn = document.createElement('button');
+                btn.className = 'btn btn-topic';
+                btn.innerHTML = `<span>📖 Bài ${lesson}</span> <span>${count} từ</span>`;
+                btn.onclick = () => startQuiz(lesson);
+                topicsList.appendChild(btn);
+            });
+        }
+
+        function showTopics() {
+            screenTopics.classList.add('active');
+            screenQuiz.classList.remove('active');
+            screenResult.classList.remove('active');
+        }
+
+        // --- GAME LOGIC ---
+
+        function startQuiz(lesson) {
+            // Read Mode
+            const modeEls = document.getElementsByName('lang-mode');
+            for (let m of modeEls) {
+                if (m.checked) isVnToJp = (m.value === 'vn_jp');
+            }
+
+            // Filter Data
+            let pool = [];
+            if (lesson === 'all') {
+                pool = [...vocabulary];
+            } else {
+                pool = vocabulary.filter(item => item.lesson === lesson);
+            }
+
+            if (pool.length === 0) {
+                alert("Chưa có dữ liệu cho bài này!");
+                return;
+            }
+
+            // Shuffle all questions
+            pool.sort(() => Math.random() - 0.5);
+            currentQuestions = pool; // Use all questions instead of limiting to 10
+
+            // Reset State
+            currentIndex = 0;
+            score = 0;
+
+            // Show Quiz Screen
+            screenTopics.classList.remove('active');
+            screenResult.classList.remove('active');
+            screenQuiz.classList.add('active');
+
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            // Reset UI for new question
+            isAnswered = false;
+            btnNext.style.display = 'none';
+            questionText.innerText = '';
+            optionsContainer.innerHTML = '';
+
+            // Update Stats
+            scoreDisplay.innerText = `Điểm: ${score}`;
+            progressDisplay.innerText = `Câu: ${currentIndex + 1}/${currentQuestions.length}`;
+
+            // Get Data
+            const currentItem = currentQuestions[currentIndex];
+            correctAnswer = currentItem;
+
+            // Display Question
+            // If VN->JP: Show Meaning
+            // If JP->VN: Show Kanji (or Hiragana if Kanji same)
+            if (isVnToJp) {
+                questionText.innerText = currentItem.vn;
+            } else {
+                questionText.innerText = currentItem.jp;
+            }
+
+            // Generate Options (1 Correct + 3 Wrong)
+            let options = [currentItem];
+
+            // Pick 3 wrong answers from FULL DATA (to ensure variety even in small lessons)
+            while (options.length < 4) {
+                const randomItem = vocabulary[Math.floor(Math.random() * vocabulary.length)];
+                // Ensure unique and not the correct answer
+                if (!options.find(o => o.id === randomItem.id)) {
+                    options.push(randomItem);
+                }
+            }
+
+            // Shuffle Options
+            options.sort(() => Math.random() - 0.5);
+
+            // Render Buttons
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+
+                // If VN->JP: Options are JP (Kanji/Hiragana)
+                // If JP->VN: Options are Meaning
+                if (isVnToJp) {
+                    btn.innerText = opt.jp;
+                    // Add sub-text for hiragana if kanji is main? Maybe later. For now simple.
+                } else {
+                    btn.innerText = opt.vn;
+                }
+
+                btn.onclick = () => handleAnswer(opt, btn);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function handleAnswer(selected, btn) {
+            if (isAnswered) return;
+            isAnswered = true;
+
+            if (selected.id === correctAnswer.id) {
+                btn.classList.add('correct');
+                score += 10;
+                scoreDisplay.innerText = `Điểm: ${score}`;
+                btnNext.style.display = 'block';
+            } else {
+                btn.classList.add('wrong');
+                // Highlight correct answer
+                const allBtns = optionsContainer.querySelectorAll('.option-btn');
+                allBtns.forEach(b => {
+                    const txt = isVnToJp ? correctAnswer.jp : correctAnswer.vn;
+                    if (b.innerText === txt) {
+                        b.classList.add('correct');
+                    }
+                });
+
+                // Show restart message and reset after 2 seconds
+                setTimeout(() => {
+                    alert('❌ Sai rồi! Bắt đầu lại từ đầu...');
+                    // Re-shuffle questions for variety each restart
+                    currentQuestions.sort(() => Math.random() - 0.5);
+                    // Reset to beginning
+                    currentIndex = 0;
+                    score = 0;
+                    loadQuestion();
+                }, 1000);
+            }
+        }
+
+        function nextQuestion() {
+            currentIndex++;
+            if (currentIndex < currentQuestions.length) {
+                loadQuestion();
+            } else {
+                finishGame();
+            }
+        }
+
+        function finishGame() {
+            screenQuiz.classList.remove('active');
+            screenResult.classList.add('active');
+            finalScore.innerText = score;
+
+            const maxScore = currentQuestions.length * 10;
+            const ratio = score / maxScore;
+
+            if (ratio === 1) finalMsg.innerText = "Tuyệt vời! Bạn đã thuộc hết rồi! 🌟";
+            else if (ratio >= 0.8) finalMsg.innerText = "Rất tốt! Cố gắng thêm chút nữa! 💪";
+            else if (ratio >= 0.5) finalMsg.innerText = "Tạm được, cần ôn luyện thêm nhé! 📚";
+            else finalMsg.innerText = "Cố lên! Đừng bỏ cuộc! 🔥";
+        }
+
+        // Start
+        init();
+
+    </script>
+</body>
+
+</html>
